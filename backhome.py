@@ -137,26 +137,41 @@ except:
   text = u''
 
 
-gpio_led=17
-gpio_sw=18
+latest_tweet_id = latest_tweet.id
 
-GPIO.setup(gpio_led, GPIO.OUT)
-GPIO.setup(gpio_sw, GPIO.IN)
+gpio_led_1=17
+gpio_sw_1=18
+
+GPIO.setup(gpio_led_1, GPIO.OUT)
+GPIO.setup(gpio_sw_1, GPIO.IN)
+
+
+GPIO.output(gpio_led_1, False)
+print(GPIO.input(gpio_led_1))
+#GPIO.output(gpio_led_1, True)
+#print(GPIO.input(gpio_led_1))
 
 
 # Animate text moving in sine wave.
 print('Press Ctrl-C to quit.')
 pos = startpos
 while True:
-    if GPIO.input(gpio_sw) == 1:
-      GPIO.output(gpio_led, True)
-      dm = api.PostDirectMessage(u'了解',u'76076870')
-      print('send DM' + datetime.now().strftime(u"%m/%d %H:%M"))
-    else:
-      GPIO.output(gpio_led, False)
-
     # get current time
     current_time = datetime.now()
+    current_time_str = current_time.strftime(u"%m/%d %H:%M")
+
+    if (GPIO.input(gpio_sw_1) == 1) and (GPIO.input(gpio_led_1) == 0):
+      print('DM button pushed!')
+      GPIO.output(gpio_led_1, True)
+      try:
+        dm = api.PostDirectMessage(u'了解 ' + current_time_str,u'76076870')
+        print('send DM' + current_time_str)
+        print(GPIO.input(gpio_led_1))
+      except:
+        print('can not send DM ' + current_time_str)
+#    else:
+#      GPIO.output(gpio_led_1, False)
+
     # get tweets
     if current_time.second == 0:
 #      api = twitter.Api(consumer_key=CONSUMER_KEY,
@@ -166,6 +181,9 @@ while True:
       try:
         tweets = api.GetSearch(term=u"#一郎帰宅")
         latest_tweet = tweets[0]
+        if (latest_tweet_id <> latest_tweet.id):
+          GPIO.output(gpio_led_1, False)
+          latest_tweet_id = latest_tweet.id
         if (current_time.second - latest_tweet.created_at_in_seconds < 43200) and (latest_tweet.text[0:4] != u'!OFF') :  # 12 hours 
 #          print(latest_tweet.text[0:4])
           dt = time.strftime(u"%m/%d %H:%M",time.localtime(latest_tweet.created_at_in_seconds))
