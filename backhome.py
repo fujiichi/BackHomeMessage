@@ -58,8 +58,8 @@ def send_dm_callback(gpio_sw):
   if gpio_sw == 21 : 
     gpio_led = 20
     text = u'了解＠かずちゃん'
-#  print (gpio_sw,gpio_led) 
-  if (GPIO.input(gpio_sw) == GPIO.LOW) and (GPIO.input(gpio_led) == 0):
+#  print (gpio_sw,gpio_led,latest_tweet_status) 
+  if (GPIO.input(gpio_sw) == GPIO.LOW) and (GPIO.input(gpio_led) == 0) and (latest_tweet_status != u'!OFF'):
     print (gpio_sw,gpio_led) 
     GPIO.output(gpio_led, True)
     try:
@@ -176,6 +176,7 @@ except:
 
 
 latest_tweet_id = latest_tweet.id
+latest_tweet_status = latest_tweet.text[0:4]
 
 #button 1
 gpio_led_1=17
@@ -255,6 +256,8 @@ while True:
         tweets = api.GetSearch(term=u"#一郎帰宅")
         latest_tweet = tweets[0]
         if (latest_tweet_id <> latest_tweet.id):
+          latest_tweet_id = latest_tweet.id
+          latest_tweet_status = latest_tweet.text[0:4]
           GPIO.output(gpio_led_1, False)
           GPIO.output(gpio_led_2, False)
           GPIO.output(gpio_led_3, False)
