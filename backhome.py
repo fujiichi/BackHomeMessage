@@ -44,6 +44,44 @@ from PIL import Image
 from PIL import ImageFont
 from PIL import ImageDraw
 
+def send_dm_callback(gpio_sw):
+  gpio_led = 26
+  if gpio_sw == 18 : 
+    gpio_led = 17
+    text = u'了解＠だいだい'
+  if gpio_sw == 22 : 
+    gpio_led = 27
+    text = u'了解＠つっつ'
+  if gpio_sw == 6 : 
+    gpio_led = 5
+    text = u'了解＠どんちゅん'
+  if gpio_sw == 21 : 
+    gpio_led = 20
+    text = u'了解＠かずちゃん'
+#  print (gpio_sw,gpio_led) 
+  if (GPIO.input(gpio_sw) == GPIO.LOW) and (GPIO.input(gpio_led) == 0):
+    print (gpio_sw,gpio_led) 
+    GPIO.output(gpio_led, True)
+    try:
+      dm = api.PostDirectMessage(text + current_time_str,u'76076870')
+      print('send DM' , current_time_str,text,gpio_sw,GPIO.input(gpio_led))
+    except:
+      print('can not send DM ' , current_time_str,gpio_sw)
+  return GPIO.input(gpio_led)
+
+def send_dm(gpio_sw,gpio_led, text):
+  if (GPIO.input(gpio_sw) == GPIO.LOW) and (GPIO.input(gpio_led) == 0):
+#    time.sleep( 0.1 )
+#    print('DM button pushed!')
+    GPIO.output(gpio_led, True)
+    try:
+      dm = api.PostDirectMessage(text + current_time_str,u'76076870')
+      print('send DM' , current_time_str,text,gpio_sw,GPIO.input(gpio_led))
+#      print(GPIO.input(gpio_led))
+    except:
+      print('can not send DM ' , current_time_str,text)
+  return GPIO.input(gpio_led)
+
 
 # Raspberry Pi pin configuration:
 RST = 24
@@ -139,17 +177,62 @@ except:
 
 latest_tweet_id = latest_tweet.id
 
+#button 1
 gpio_led_1=17
 gpio_sw_1=18
 
+#button 2
+gpio_led_2=27
+gpio_sw_2=22
+
+#button 3
+gpio_led_3=5
+gpio_sw_3=6
+
+#button 4
+gpio_led_4=20
+gpio_sw_4=21
+
+# Setup button 1
 GPIO.setup(gpio_led_1, GPIO.OUT)
-GPIO.setup(gpio_sw_1, GPIO.IN)
+#GPIO.setup(gpio_sw_1, GPIO.IN)
+GPIO.setup(gpio_sw_1, GPIO.IN,pull_up_down=GPIO.PUD_UP)
+GPIO.add_event_detect(gpio_sw_1, GPIO.RISING, callback=send_dm_callback, bouncetime=200)
 
+# Setup button 2
+GPIO.setup(gpio_led_2, GPIO.OUT)
+#GPIO.setup(gpio_sw_2, GPIO.IN)
+GPIO.setup(gpio_sw_2, GPIO.IN,pull_up_down=GPIO.PUD_UP)
+GPIO.add_event_detect(gpio_sw_2, GPIO.RISING, callback=send_dm_callback, bouncetime=200)
 
+# Setup button 3
+GPIO.setup(gpio_led_3, GPIO.OUT)
+#GPIO.setup(gpio_sw_3, GPIO.IN)
+GPIO.setup(gpio_sw_3, GPIO.IN,pull_up_down=GPIO.PUD_UP)
+GPIO.add_event_detect(gpio_sw_3, GPIO.RISING, callback=send_dm_callback, bouncetime=200)
+
+# Setup button 4
+GPIO.setup(gpio_led_4, GPIO.OUT)
+#GPIO.setup(gpio_sw_4, GPIO.IN)
+GPIO.setup(gpio_sw_4, GPIO.IN,pull_up_down=GPIO.PUD_UP)
+GPIO.add_event_detect(gpio_sw_4, GPIO.RISING, callback=send_dm_callback, bouncetime=200)
+
+# Initialize button 1
 GPIO.output(gpio_led_1, False)
-print(GPIO.input(gpio_led_1))
-#GPIO.output(gpio_led_1, True)
 #print(GPIO.input(gpio_led_1))
+
+# Initialize button 2
+GPIO.output(gpio_led_2, False)
+#print(GPIO.input(gpio_led_2))
+
+# Initialize button 3
+GPIO.output(gpio_led_3, False)
+#print(GPIO.input(gpio_led_3))
+
+# Initialize button 4
+GPIO.output(gpio_led_4, False)
+#print(GPIO.input(gpio_led_4))
+
 
 
 # Animate text moving in sine wave.
@@ -160,29 +243,22 @@ while True:
     current_time = datetime.now()
     current_time_str = current_time.strftime(u"%m/%d %H:%M")
 
-    if (GPIO.input(gpio_sw_1) == 1) and (GPIO.input(gpio_led_1) == 0):
-      print('DM button pushed!')
-      GPIO.output(gpio_led_1, True)
-      try:
-        dm = api.PostDirectMessage(u'了解 ' + current_time_str,u'76076870')
-        print('send DM' + current_time_str)
-        print(GPIO.input(gpio_led_1))
-      except:
-        print('can not send DM ' + current_time_str)
-#    else:
-#      GPIO.output(gpio_led_1, False)
-
+#    send_dm(gpio_sw_1,gpio_led_1,u'了解＠だいだい')
+#    send_dm(gpio_sw_2,gpio_led_2,u'了解＠つっつ')
+#    send_dm(gpio_sw_3,gpio_led_3,u'了解＠どんちゅん')
+#    send_dm(gpio_sw_4,gpio_led_4,u'了解＠かずちゃん')
+#    print(GPIO.input(gpio_sw_1),GPIO.input(gpio_led_1),GPIO.input(gpio_sw_2),GPIO.input(gpio_led_2), GPIO.input(gpio_sw_3),GPIO.input(gpio_led_3),GPIO.input(gpio_sw_4),GPIO.input(gpio_led_4))
+    
     # get tweets
     if current_time.second == 0:
-#      api = twitter.Api(consumer_key=CONSUMER_KEY,
-#                  consumer_secret=CONSUMER_SECRET,
-#                  access_token_key=ACCESS_TOKEN_KEY,
-#                  access_token_secret=ACCESS_TOKEN_SECRET)
       try:
         tweets = api.GetSearch(term=u"#一郎帰宅")
         latest_tweet = tweets[0]
         if (latest_tweet_id <> latest_tweet.id):
           GPIO.output(gpio_led_1, False)
+          GPIO.output(gpio_led_2, False)
+          GPIO.output(gpio_led_3, False)
+          GPIO.output(gpio_led_4, False)
           latest_tweet_id = latest_tweet.id
         if (current_time.second - latest_tweet.created_at_in_seconds < 43200) and (latest_tweet.text[0:4] != u'!OFF') :  # 12 hours 
 #          print(latest_tweet.text[0:4])
