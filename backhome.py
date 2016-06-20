@@ -25,12 +25,12 @@ import RPi.GPIO as GPIO
 
 
 import twitter
-import twitkey
+import BackHomeMessageConfig
 
-CONSUMER_KEY = twitkey.twkey['cons_key']
-CONSUMER_SECRET = twitkey.twkey['cons_sec']
-ACCESS_TOKEN_KEY = twitkey.twkey['accto_key']
-ACCESS_TOKEN_SECRET = twitkey.twkey['accto_sec']
+CONSUMER_KEY = BackHomeMessageConfig.twkey['cons_key']
+CONSUMER_SECRET = BackHomeMessageConfig.twkey['cons_sec']
+ACCESS_TOKEN_KEY = BackHomeMessageConfig.twkey['accto_key']
+ACCESS_TOKEN_SECRET = BackHomeMessageConfig.twkey['accto_sec']
 
 from datetime import datetime
 
@@ -46,41 +46,29 @@ from PIL import ImageDraw
 
 def send_dm_callback(gpio_sw):
   gpio_led = 26
-  if gpio_sw == 18 : 
-    gpio_led = 17
-    text = u'了解＠だいだい'
-  if gpio_sw == 22 : 
-    gpio_led = 27
-    text = u'了解＠つっつ'
-  if gpio_sw == 6 : 
-    gpio_led = 5
-    text = u'了解＠どんちゅん'
-  if gpio_sw == 21 : 
-    gpio_led = 20
-    text = u'了解＠かずちゃん'
+  if gpio_sw == BackHomeMessageConfig.button_1['sw'] : 
+    gpio_led =  BackHomeMessageConfig.button_1['led']
+    text =      BackHomeMessageConfig.button_1['text']
+  if gpio_sw == BackHomeMessageConfig.button_2['sw'] : 
+    gpio_led =  BackHomeMessageConfig.button_2['led']
+    text =      BackHomeMessageConfig.button_2['text']
+  if gpio_sw == BackHomeMessageConfig.button_3['sw'] : 
+    gpio_led =  BackHomeMessageConfig.button_3['led']
+    text =      BackHomeMessageConfig.button_3['text']
+  if gpio_sw == BackHomeMessageConfig.button_4['sw'] : 
+    gpio_led =  BackHomeMessageConfig.button_4['led']
+    text =      BackHomeMessageConfig.button_4['text']
 #  print (gpio_sw,gpio_led,latest_tweet_status) 
   if (GPIO.input(gpio_sw) == GPIO.LOW) and (GPIO.input(gpio_led) == 0) and (latest_tweet_status != u'!OFF'):
     print (gpio_sw,gpio_led) 
     GPIO.output(gpio_led, True)
     try:
-      dm = api.PostDirectMessage(text + current_time_str,u'76076870')
+      dm = api.PostDirectMessage(text + current_time_str,BackHomeMessageConfig.account['DM_to'])
       print('send DM' , current_time_str,text,gpio_sw,GPIO.input(gpio_led))
     except:
       print('can not send DM ' , current_time_str,gpio_sw)
   return GPIO.input(gpio_led)
 
-def send_dm(gpio_sw,gpio_led, text):
-  if (GPIO.input(gpio_sw) == GPIO.LOW) and (GPIO.input(gpio_led) == 0):
-#    time.sleep( 0.1 )
-#    print('DM button pushed!')
-    GPIO.output(gpio_led, True)
-    try:
-      dm = api.PostDirectMessage(text + current_time_str,u'76076870')
-      print('send DM' , current_time_str,text,gpio_sw,GPIO.input(gpio_led))
-#      print(GPIO.input(gpio_led))
-    except:
-      print('can not send DM ' , current_time_str,text)
-  return GPIO.input(gpio_led)
 
 
 # Raspberry Pi pin configuration:
@@ -148,21 +136,13 @@ velocity = -2
 startpos = width
 
 
-# get tweets
-#api = twitter.Api(consumer_key=CONSUMER_KEY,
-#                  consumer_secret=CONSUMER_SECRET,
-#                  access_token_key=ACCESS_TOKEN_KEY,
-#                  access_token_secret=ACCESS_TOKEN_SECRET)
-#tweets = api.GetSearch(term=u"#一郎帰宅")
-#
-#text = u""
 current_time = datetime.now()
 api = twitter.Api(consumer_key=CONSUMER_KEY,
                   consumer_secret=CONSUMER_SECRET,
                   access_token_key=ACCESS_TOKEN_KEY,
                   access_token_secret=ACCESS_TOKEN_SECRET)
 try:
-  tweets = api.GetSearch(term=u"#一郎帰宅")
+  tweets = api.GetSearch(term=BackHomeMessageConfig.account['special_hash'])
   latest_tweet = tweets[0]
   if (current_time.second - latest_tweet.created_at_in_seconds < 43200) and (latest_tweet.text[0:4] != u'!OFF') :  # 12 hours 
   #  print(latest_tweet.text[0:4])
@@ -178,61 +158,31 @@ except:
 latest_tweet_id = latest_tweet.id
 latest_tweet_status = latest_tweet.text[0:4]
 
-#button 1
-gpio_led_1=17
-gpio_sw_1=18
-
-#button 2
-gpio_led_2=27
-gpio_sw_2=22
-
-#button 3
-gpio_led_3=5
-gpio_sw_3=6
-
-#button 4
-gpio_led_4=20
-gpio_sw_4=21
-
 # Setup button 1
-GPIO.setup(gpio_led_1, GPIO.OUT)
-#GPIO.setup(gpio_sw_1, GPIO.IN)
-GPIO.setup(gpio_sw_1, GPIO.IN,pull_up_down=GPIO.PUD_UP)
-GPIO.add_event_detect(gpio_sw_1, GPIO.RISING, callback=send_dm_callback, bouncetime=200)
+GPIO.setup(BackHomeMessageConfig.button_1['led'], GPIO.OUT)
+GPIO.setup(BackHomeMessageConfig.button_1['sw'], GPIO.IN,pull_up_down=GPIO.PUD_UP)
+GPIO.add_event_detect(BackHomeMessageConfig.button_1['sw'], GPIO.RISING, callback=send_dm_callback, bouncetime=200)
 
 # Setup button 2
-GPIO.setup(gpio_led_2, GPIO.OUT)
-#GPIO.setup(gpio_sw_2, GPIO.IN)
-GPIO.setup(gpio_sw_2, GPIO.IN,pull_up_down=GPIO.PUD_UP)
-GPIO.add_event_detect(gpio_sw_2, GPIO.RISING, callback=send_dm_callback, bouncetime=200)
+GPIO.setup(BackHomeMessageConfig.button_2['led'], GPIO.OUT)
+GPIO.setup(BackHomeMessageConfig.button_2['sw'], GPIO.IN,pull_up_down=GPIO.PUD_UP)
+GPIO.add_event_detect(BackHomeMessageConfig.button_2['sw'], GPIO.RISING, callback=send_dm_callback, bouncetime=200)
 
 # Setup button 3
-GPIO.setup(gpio_led_3, GPIO.OUT)
-#GPIO.setup(gpio_sw_3, GPIO.IN)
-GPIO.setup(gpio_sw_3, GPIO.IN,pull_up_down=GPIO.PUD_UP)
-GPIO.add_event_detect(gpio_sw_3, GPIO.RISING, callback=send_dm_callback, bouncetime=200)
+GPIO.setup(BackHomeMessageConfig.button_3['led'], GPIO.OUT)
+GPIO.setup(BackHomeMessageConfig.button_3['sw'], GPIO.IN,pull_up_down=GPIO.PUD_UP)
+GPIO.add_event_detect(BackHomeMessageConfig.button_3['sw'], GPIO.RISING, callback=send_dm_callback, bouncetime=200)
 
 # Setup button 4
-GPIO.setup(gpio_led_4, GPIO.OUT)
-#GPIO.setup(gpio_sw_4, GPIO.IN)
-GPIO.setup(gpio_sw_4, GPIO.IN,pull_up_down=GPIO.PUD_UP)
-GPIO.add_event_detect(gpio_sw_4, GPIO.RISING, callback=send_dm_callback, bouncetime=200)
+GPIO.setup(BackHomeMessageConfig.button_4['led'], GPIO.OUT)
+GPIO.setup(BackHomeMessageConfig.button_4['sw'], GPIO.IN,pull_up_down=GPIO.PUD_UP)
+GPIO.add_event_detect(BackHomeMessageConfig.button_4['sw'], GPIO.RISING, callback=send_dm_callback, bouncetime=200)
 
-# Initialize button 1
-GPIO.output(gpio_led_1, False)
-#print(GPIO.input(gpio_led_1))
-
-# Initialize button 2
-GPIO.output(gpio_led_2, False)
-#print(GPIO.input(gpio_led_2))
-
-# Initialize button 3
-GPIO.output(gpio_led_3, False)
-#print(GPIO.input(gpio_led_3))
-
-# Initialize button 4
-GPIO.output(gpio_led_4, False)
-#print(GPIO.input(gpio_led_4))
+# Initialize button 
+GPIO.output(BackHomeMessageConfig.button_1['led'], False)
+GPIO.output(BackHomeMessageConfig.button_2['led'], False)
+GPIO.output(BackHomeMessageConfig.button_3['led'], False)
+GPIO.output(BackHomeMessageConfig.button_4['led'], False)
 
 
 
@@ -244,24 +194,27 @@ while True:
     current_time = datetime.now()
     current_time_str = current_time.strftime(u"%m/%d %H:%M")
 
-#    send_dm(gpio_sw_1,gpio_led_1,u'了解＠だいだい')
-#    send_dm(gpio_sw_2,gpio_led_2,u'了解＠つっつ')
-#    send_dm(gpio_sw_3,gpio_led_3,u'了解＠どんちゅん')
-#    send_dm(gpio_sw_4,gpio_led_4,u'了解＠かずちゃん')
-#    print(GPIO.input(gpio_sw_1),GPIO.input(gpio_led_1),GPIO.input(gpio_sw_2),GPIO.input(gpio_led_2), GPIO.input(gpio_sw_3),GPIO.input(gpio_led_3),GPIO.input(gpio_sw_4),GPIO.input(gpio_led_4))
+#    print(GPIO.input(BackHomeMessageConfig.button_1['sw']), \
+#          GPIO.input(BackHomeMessageConfig.button_1['led']),\
+#          GPIO.input(BackHomeMessageConfig.button_2['sw']),\
+#          GPIO.input(BackHomeMessageConfig.button_2['led']),\
+#          GPIO.input(BackHomeMessageConfig.button_3['sw']),\
+#          GPIO.input(BackHomeMessageConfig.button_3['led']),\
+#          GPIO.input(BackHomeMessageConfig.button_4['sw']),\
+#          GPIO.input(BackHomeMessageConfig.button_4['led']))
     
     # get tweets
     if current_time.second == 0:
       try:
-        tweets = api.GetSearch(term=u"#一郎帰宅")
+        tweets = api.GetSearch(term=BackHomeMessageConfig.account['special_hash'])
         latest_tweet = tweets[0]
         if (latest_tweet_id <> latest_tweet.id):
           latest_tweet_id = latest_tweet.id
           latest_tweet_status = latest_tweet.text[0:4]
-          GPIO.output(gpio_led_1, False)
-          GPIO.output(gpio_led_2, False)
-          GPIO.output(gpio_led_3, False)
-          GPIO.output(gpio_led_4, False)
+          GPIO.output(BackHomeMessageConfig.button_1['led'], False)
+          GPIO.output(BackHomeMessageConfig.button_2['led'], False)
+          GPIO.output(BackHomeMessageConfig.button_3['led'], False)
+          GPIO.output(BackHomeMessageConfig.button_4['led'], False)
           latest_tweet_id = latest_tweet.id
         if (current_time.second - latest_tweet.created_at_in_seconds < 43200) and (latest_tweet.text[0:4] != u'!OFF') :  # 12 hours 
 #          print(latest_tweet.text[0:4])
