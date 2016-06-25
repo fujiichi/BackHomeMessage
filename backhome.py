@@ -48,25 +48,25 @@ def send_dm_callback(gpio_sw):
   gpio_led = 26
   if gpio_sw == BackHomeMessageConfig.button_1['sw'] : 
     gpio_led =  BackHomeMessageConfig.button_1['led']
-    text =      BackHomeMessageConfig.button_1['text']
+    msg =      BackHomeMessageConfig.button_1['text']
   if gpio_sw == BackHomeMessageConfig.button_2['sw'] : 
     gpio_led =  BackHomeMessageConfig.button_2['led']
-    text =      BackHomeMessageConfig.button_2['text']
+    msg =      BackHomeMessageConfig.button_2['text']
   if gpio_sw == BackHomeMessageConfig.button_3['sw'] : 
     gpio_led =  BackHomeMessageConfig.button_3['led']
-    text =      BackHomeMessageConfig.button_3['text']
+    msg =      BackHomeMessageConfig.button_3['text']
   if gpio_sw == BackHomeMessageConfig.button_4['sw'] : 
     gpio_led =  BackHomeMessageConfig.button_4['led']
-    text =      BackHomeMessageConfig.button_4['text']
+    msg =      BackHomeMessageConfig.button_4['text']
 #  print (gpio_sw,gpio_led,latest_tweet_status) 
   if (GPIO.input(gpio_sw) == GPIO.LOW) and (GPIO.input(gpio_led) == 0) and (latest_tweet_status != u'!OFF'):
-    print (gpio_sw,gpio_led) 
+#    print (gpio_sw,gpio_led) 
     GPIO.output(gpio_led, True)
     try:
-      dm = api.PostDirectMessage(text + current_time_str,BackHomeMessageConfig.account['DM_to'])
-      print('send DM' , current_time_str,text,gpio_sw,GPIO.input(gpio_led))
+      dm = api.PostDirectMessage(msg + '>> ' + text + current_time_str,BackHomeMessageConfig.account['DM_to'])
+      print 'send DM ' + current_time_str + ' ' + msg + '>> ' + text[0:20] + ' ' + str(gpio_sw) + ' ' + str(GPIO.input(gpio_led))
     except:
-      print('can not send DM ' , current_time_str,gpio_sw)
+      print 'can not send DM ' + current_time_str + ' ' + str(gpio_sw)
   return GPIO.input(gpio_led)
 
 
